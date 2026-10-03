@@ -57,7 +57,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # Screenshots of each widget face, shown in the theme picker (tools/ explains how they were made)
+  # Screenshots of each widget face (WebP), shown in the theme picker
   assets:
     - assets/previews/
 
