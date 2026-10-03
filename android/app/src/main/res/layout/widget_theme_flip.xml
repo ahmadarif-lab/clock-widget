@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Flip-clock face: three off-white cards (hh / mm / ss) split by a dark seam, over a
+     violet-to-olive diagonal glow. Measured from the reference at 3.7 px/dp:
+     card 64 x 80 dp, gap 11 dp. hh and mm are vector League Gothic glyphs (set per minute by
+     ClockWidgetProvider); ss is a ViewFlipper that the host advances every second. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_flip"
+    android:gravity="center"
+    android:orientation="horizontal">
+
+    <FrameLayout
+        android:layout_width="64dp"
+        android:layout_height="80dp"
+        android:background="@drawable/flip_card">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/flip_h0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@null"
+                android:src="@drawable/flip_digit" />
+
+            <ImageView
+                android:id="@+id/flip_h1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@null"
+                android:src="@drawable/flip_digit" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="@null"
+            android:scaleType="fitXY"
+            android:src="@drawable/flip_seam" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="64dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="11dp"
+        android:background="@drawable/flip_card">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/flip_m0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@null"
+                android:src="@drawable/flip_digit" />
+
+            <ImageView
+                android:id="@+id/flip_m1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@null"
+                android:src="@drawable/flip_digit" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="@null"
+            android:scaleType="fitXY"
+            android:src="@drawable/flip_seam" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="64dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="11dp"
+        android:background="@drawable/flip_card">
+
+        <!-- 60 children (00..59) filled in by ClockWidgetProvider; the host advances one child
+             per second by itself, and the next minute tick re-syncs it. -->
+        <ViewFlipper
+            android:id="@+id/flip_seconds"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:autoStart="true"
+            android:flipInterval="1000" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="@null"
+            android:scaleType="fitXY"
+            android:src="@drawable/flip_seam" />
+    </FrameLayout>
+
+</LinearLayout>

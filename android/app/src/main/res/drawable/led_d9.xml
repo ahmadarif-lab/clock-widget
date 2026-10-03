@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LED digit 9: lit segments over dim ghost segments (generated from the reference geometry) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="38dp"
+    android:height="68dp"
+    android:viewportWidth="183"
+    android:viewportHeight="329">
+    <path android:fillColor="#FF00FF00" android:pathData="M31,0 L152,0 L165,13 L131,47 L52,47 L18,13 Z" />
+    <path android:fillColor="#FF00FF00" android:pathData="M183,31 L170,18 L135,53 L135,131 L159,154 L183,132 Z" />
+    <path android:fillColor="#FF00FF00" android:pathData="M183,187 L159,164 L135,187 L135,277 L172,311 L183,300 Z" />
+    <path android:fillColor="#FF00FF00" android:pathData="M31,329 L152,329 L165,316 L131,282 L52,282 L18,316 Z" />
+    <path android:fillColor="#FF012B01" android:pathData="M0,187 L24,164 L48,187 L48,277 L11,311 L0,300 Z" />
+    <path android:fillColor="#FF00FF00" android:pathData="M0,31 L13,18 L48,53 L48,131 L24,154 L0,132 Z" />
+    <path android:fillColor="#FF00FF00" android:pathData="M29,158.5 L52,136 L131,136 L154,158.5 L131,181 L52,181 Z" />
+</vector>

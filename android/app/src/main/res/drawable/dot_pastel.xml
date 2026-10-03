@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- grey sphere used as the ":" separator on the pastel face: flat #CCCCCC on the upper half,
+     darkening toward the bottom (sampled from the reference) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <size
+        android:width="14dp"
+        android:height="14dp" />
+    <gradient
+        android:angle="270"
+        android:centerColor="#FFCCCCCC"
+        android:centerX="0.55"
+        android:endColor="#FF9C9C9C"
+        android:startColor="#FFCCCCCC"
+        android:type="linear" />
+</shape>

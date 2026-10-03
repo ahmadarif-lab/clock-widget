@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- diagonal glow: violet (top-left) fading to near-black, then olive (bottom-right).
+     Colours sampled along the reference's top-left to bottom-right diagonal. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:centerColor="#FF050304"
+        android:centerX="0.55"
+        android:endColor="#FF757233"
+        android:startColor="#FF6E4660"
+        android:type="linear" />
+</shape>
