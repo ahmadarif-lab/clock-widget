@@ -57,9 +57,10 @@ It has its own landscape layout too:
 
 ## Download
 
-Grab the APK from the [latest release](https://github.com/ahmadarif-lab/clock-widget/releases/latest):
-`arm64-v8a` for most phones, `armeabi-v7a` for older 32-bit ones. Each release lists the SHA-256
-checksums of its files.
+Grab the APK from the [latest release](https://github.com/ahmadarif-lab/clock-widget/releases/latest)
+or from [apps.bontot.my.id/clock-widget](https://apps.bontot.my.id/clock-widget/), which also has the
+install steps and the version history: `arm64-v8a` for most phones, `armeabi-v7a` for older 32-bit
+ones. Each release lists the SHA-256 checksums of its files.
 
 ## Updates
 
