@@ -101,6 +101,11 @@ class MainActivity: FlutterActivity() {
                     }
                 }
                 "installedVersion" -> result.success(UpdateChecker.installedVersion(this))
+                "getAutoCheck" -> result.success(UpdateChecker.isAutoCheck(this))
+                "setAutoCheck" -> {
+                    UpdateChecker.setAutoCheck(this, call.argument<Boolean>("enabled") != false)
+                    result.success(null)
+                }
                 "requestNotifications" -> {
                     // Android 13+ needs a runtime grant before the update notification can show; ask once.
                     val prefs = getSharedPreferences("UpdateCheck", Context.MODE_PRIVATE)

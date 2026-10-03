@@ -34,6 +34,25 @@ class UpdateService {
     }
   }
 
+  /// The "Check for updates" switch; on by default.
+  static Future<bool> autoCheck() async {
+    try {
+      return await _channel.invokeMethod<bool>('getAutoCheck') ?? true;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  static Future<void> setAutoCheck(bool enabled) => _safe(() => _channel.invokeMethod('setAutoCheck', {'enabled': enabled}));
+
+  static Future<String> installedVersion() async {
+    try {
+      return await _channel.invokeMethod<String>('installedVersion') ?? '';
+    } catch (e) {
+      return '';
+    }
+  }
+
   static Future<void> dismiss(UpdateInfo update) => _safe(() => _channel.invokeMethod('dismiss', {'version': update.version}));
 
   static Future<void> open(UpdateInfo update) => _safe(() => _channel.invokeMethod('open', {'url': update.downloadUrl}));
@@ -106,6 +125,101 @@ class UpdateBanner extends StatelessWidget {
               tooltip: 'Not now',
               icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 20),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet with the update switch and a "Check now" button.
+class SettingsSheet extends StatefulWidget {
+  const SettingsSheet({super.key, required this.accent, required this.onUpdateFound});
+
+  final Color accent;
+  final ValueChanged<UpdateInfo> onUpdateFound;
+
+  @override
+  State<SettingsSheet> createState() => _SettingsSheetState();
+}
+
+class _SettingsSheetState extends State<SettingsSheet> {
+  bool _auto = true;
+  String _version = '';
+  bool _checking = false;
+  String? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    UpdateService.autoCheck().then((value) {
+      if (mounted) setState(() => _auto = value);
+    });
+    UpdateService.installedVersion().then((value) {
+      if (mounted) setState(() => _version = value);
+    });
+  }
+
+  Future<void> _checkNow() async {
+    setState(() {
+      _checking = true;
+      _result = null;
+    });
+    final update = await UpdateService.check(force: true);
+    if (!mounted) return;
+    setState(() {
+      _checking = false;
+      _result = update == null ? 'No newer version found.' : 'Version ${update.version} is available.';
+    });
+    if (update != null) widget.onUpdateFound(update);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(4))),
+            ),
+            const SizedBox(height: 18),
+            const Text('Settings', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              activeThumbColor: widget.accent,
+              value: _auto,
+              onChanged: (value) {
+                setState(() => _auto = value);
+                UpdateService.setAutoCheck(value);
+              },
+              title: const Text('Check for updates', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+              subtitle: const Text(
+                'About once a day the app downloads a small file from apps.bontot.my.id to see if a newer version exists. Nothing about you is sent.',
+                style: TextStyle(color: Colors.white60, height: 1.3),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _checking ? null : _checkNow,
+                  icon: _checking
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Check now'),
+                  style: OutlinedButton.styleFrom(foregroundColor: widget.accent, side: BorderSide(color: widget.accent.withValues(alpha: 0.6))),
+                ),
+                const SizedBox(width: 14),
+                Expanded(child: Text(_result ?? '', style: const TextStyle(color: Colors.white70))),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text(_version.isEmpty ? 'Clock Widget' : 'Clock Widget $_version', style: const TextStyle(color: Colors.white38)),
           ],
         ),
       ),

@@ -54,7 +54,8 @@ object UpdateChecker {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val now = System.currentTimeMillis()
         val due = now - prefs.getLong("last_attempt", 0) >= if (prefs.getBoolean("last_ok", false)) OK_INTERVAL_MS else FAILED_INTERVAL_MS
-        if (force || due) {
+        // with the switch off nothing touches the network unless the user asked ("Check now")
+        if (force || (due && isAutoCheck(context))) {
             prefs.edit().putLong("last_attempt", now).apply()
             try {
                 val body = fetch(context, prefs)
@@ -72,11 +73,13 @@ object UpdateChecker {
 
     /** Posts the notification for the cached release if it was not announced yet (e.g. once the permission is granted). */
     fun announce(context: Context) {
+        if (!isAutoCheck(context)) return
         cached(context)?.let { notifyOnce(context, it) }
     }
 
     /** Runs [check] on a background thread, at most once an hour; for callers that must not block. */
     fun checkInBackground(context: Context) {
+        if (!isAutoCheck(context)) return
         val now = System.currentTimeMillis()
         if (now - lastSpawn < SPAWN_INTERVAL_MS) return
         lastSpawn = now
@@ -94,6 +97,14 @@ object UpdateChecker {
             null
         } ?: return null
         return if (compareVersions(update.version, installedVersion(context)) > 0) update else null
+    }
+
+    /** The "Check for updates" switch in the picker's settings; on by default. */
+    fun isAutoCheck(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean("auto_check", true)
+
+    fun setAutoCheck(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("auto_check", enabled).apply()
     }
 
     fun isDismissed(context: Context, version: String): Boolean =

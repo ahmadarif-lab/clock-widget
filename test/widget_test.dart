@@ -73,4 +73,15 @@ void updateTests() {
     expect(downloaded, isTrue);
     expect(dismissed, isTrue);
   });
+
+  testWidgets('settings sheet has the update switch and a Check now button', (WidgetTester tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: SettingsSheet(accent: Colors.green, onUpdateFound: (_) {})),
+    ));
+    await tester.pump();
+
+    expect(find.text('Check for updates'), findsOneWidget);
+    expect(find.text('Check now'), findsOneWidget);
+    expect(find.byType(Switch), findsOneWidget);
+  });
 }

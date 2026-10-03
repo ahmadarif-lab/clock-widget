@@ -72,6 +72,10 @@ publishes for every release, and compares its version with the installed one:
 - a notification, *Clock Widget 1.x is available*, is posted once per new version. On Android 13+
   the app asks for the notification permission the first time it opens.
 
+The settings sheet (the sliders icon in the picker) has a **Check for updates** switch to turn the
+automatic check off, and a **Check now** button. With the switch off the app never touches the
+network unless you press that button.
+
 The manifest is treated as untrusted: only `https` links to `apps.bontot.my.id` and `github.com`
 are ever opened. This is the app's only network use (`INTERNET` permission); the request carries
 nothing but the usual HTTP headers.

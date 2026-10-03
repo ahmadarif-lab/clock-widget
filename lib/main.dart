@@ -145,6 +145,22 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
     await UpdateService.dismiss(update);
   }
 
+  Future<void> _openSettings() async {
+    final accent = _shown.accent;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF16161F),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (context) => SettingsSheet(
+        accent: accent,
+        onUpdateFound: (update) {
+          if (mounted) setState(() => _update = update.dismissed ? null : update);
+        },
+      ),
+    );
+  }
+
   Widget? _updateBanner(Color accent) {
     final update = _update;
     if (update == null) return null;
@@ -217,7 +233,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
               if (!landscape) {
                 return Column(
                   children: [
-                    const _Header(),
+                    _Header(onSettings: _openSettings),
                     if (banner != null) Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 4), child: banner),
                     Expanded(child: carousel),
                     dots,
@@ -237,7 +253,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const _Header(compact: true),
+                          _Header(compact: true, onSettings: _openSettings),
                           if (banner != null) ...[const SizedBox(height: 10), banner],
                           const SizedBox(height: 14),
                           Expanded(
@@ -304,36 +320,54 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({this.compact = false});
+  const _Header({required this.onSettings, this.compact = false});
 
+  final VoidCallback onSettings;
   final bool compact;
 
   @override
   Widget build(BuildContext context) {
+    final settings = IconButton(
+      onPressed: onSettings,
+      tooltip: 'Settings',
+      icon: const Icon(Icons.tune_rounded, color: Colors.white70),
+    );
     if (compact) {
-      return const Text(
-        'Clock Widget',
-        style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
+      return Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'Clock Widget',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
+            ),
+          ),
+          settings,
+        ],
       );
     }
-    return const Padding(
-      padding: EdgeInsets.fromLTRB(28, 18, 28, 8),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Clock Widget',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 18, 16, 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Clock Widget',
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Swipe to pick a face for your home screen',
+                  style: TextStyle(fontSize: 14, color: Colors.white60, letterSpacing: 0.2),
+                ),
+              ],
             ),
-            SizedBox(height: 4),
-            Text(
-              'Swipe to pick a face for your home screen',
-              style: TextStyle(fontSize: 14, color: Colors.white60, letterSpacing: 0.2),
-            ),
-          ],
-        ),
+          ),
+          settings,
+        ],
       ),
     );
   }
