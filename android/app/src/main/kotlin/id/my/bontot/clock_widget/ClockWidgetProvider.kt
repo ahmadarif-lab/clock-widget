@@ -1,4 +1,4 @@
-package com.example.clock_widget
+package id.my.bontot.clock_widget
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -28,7 +28,7 @@ import java.util.Calendar
 class ClockWidgetProvider : AppWidgetProvider() {
 
     companion object {
-        const val ACTION_TICK = "com.example.clock_widget.ACTION_TICK"
+        const val ACTION_TICK = "id.my.bontot.clock_widget.ACTION_TICK"
         private const val PREFS = "WidgetTheme"
         private const val REQUEST_TICK = 1001
         /** Hour as shown on the face: 0-23, or 1-12 when the system uses 12-hour time. */

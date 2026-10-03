@@ -4,4 +4,6 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug builds may point the update check at a local http server (see UpdateChecker). -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

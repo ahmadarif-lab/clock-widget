@@ -3,6 +3,8 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'update.dart';
+
 void main() {
   runApp(const ClockWidgetApp());
 }
@@ -88,7 +90,7 @@ class ThemeSelectorScreen extends StatefulWidget {
 }
 
 class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
-  static const platform = MethodChannel('com.example.clock_widget/theme');
+  static const platform = MethodChannel('id.my.bontot.clock_widget/theme');
 
   final _pages = PageController(viewportFraction: 0.8);
   // keeps the one PageView alive (and re-parented) when a rotation swaps the portrait / landscape
@@ -97,6 +99,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
   String? _applied; // the theme the widget is using right now
   int _index = 0; // the card in the middle of the carousel
   bool _applying = false;
+  UpdateInfo? _update; // a newer release, when one was found and not dismissed
 
   ClockTheme get _shown => _themes[_index];
 
@@ -104,6 +107,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
   void initState() {
     super.initState();
     _loadCurrentTheme();
+    _checkForUpdate();
   }
 
   @override
@@ -125,6 +129,26 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
     } catch (e) {
       debugPrint('Failed to read theme: $e');
     }
+  }
+
+  Future<void> _checkForUpdate() async {
+    UpdateService.requestNotifications(); // once; lets a new version be announced when the app is closed
+    final update = await UpdateService.check();
+    if (!mounted || update == null || update.dismissed) return;
+    setState(() => _update = update);
+  }
+
+  Future<void> _dismissUpdate() async {
+    final update = _update;
+    if (update == null) return;
+    setState(() => _update = null);
+    await UpdateService.dismiss(update);
+  }
+
+  Widget? _updateBanner(Color accent) {
+    final update = _update;
+    if (update == null) return null;
+    return UpdateBanner(update: update, accent: accent, onDownload: () => UpdateService.open(update), onDismiss: _dismissUpdate);
   }
 
   Future<void> _apply() async {
@@ -182,6 +206,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
             builder: (context, orientation) {
               final landscape = orientation == Orientation.landscape;
               final carousel = _buildCarousel(compact: landscape);
+              final banner = _updateBanner(accent);
               final dots = _Dots(count: _themes.length, index: _index, accent: accent);
               final button = _ApplyButton(
                 accent: accent,
@@ -193,6 +218,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                 return Column(
                   children: [
                     const _Header(),
+                    if (banner != null) Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 4), child: banner),
                     Expanded(child: carousel),
                     dots,
                     Padding(padding: const EdgeInsets.fromLTRB(24, 18, 24, 20), child: button),
@@ -212,6 +238,7 @@ class _ThemeSelectorScreenState extends State<ThemeSelectorScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const _Header(compact: true),
+                          if (banner != null) ...[const SizedBox(height: 10), banner],
                           const SizedBox(height: 14),
                           Expanded(
                             child: SingleChildScrollView(

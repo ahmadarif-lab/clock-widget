@@ -1,4 +1,4 @@
-package com.example.clock_widget
+package id.my.bontot.clock_widget
 
 import android.content.Context
 import android.graphics.Bitmap

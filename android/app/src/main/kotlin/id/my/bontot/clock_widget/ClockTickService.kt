@@ -1,4 +1,4 @@
-package com.example.clock_widget
+package id.my.bontot.clock_widget
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -59,6 +59,7 @@ class ClockTickService : Service() {
         if (thread == null) {
             running = true
             thread = Thread({ loop() }, "clock-tick").also { it.start() }
+            UpdateChecker.checkInBackground(this)
         } else {
             synchronized(screenLock) { screenLock.notifyAll() } // the theme may have changed
         }
@@ -133,6 +134,7 @@ class ClockTickService : Service() {
                     return
                 }
                 if (flipping) flip(renderer, manager, ids) else refreshStill()
+                UpdateChecker.checkInBackground(this) // throttled: one network check a day at most
             }
         } catch (e: InterruptedException) {
             // stopped

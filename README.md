@@ -55,6 +55,27 @@ It has its own landscape layout too:
   <img src="docs/images/picker-landscape.webp" alt="The theme picker in landscape" width="100%">
 </p>
 
+## Download
+
+Grab the APK from the [latest release](https://github.com/ahmadarif-lab/clock-widget/releases/latest):
+`arm64-v8a` for most phones, `armeabi-v7a` for older 32-bit ones. Each release lists the SHA-256
+checksums of its files.
+
+## Updates
+
+New releases (and with them new faces) reach you without checking GitHub yourself. About once a
+day the app reads `https://apps.bontot.my.id/clock-widget/latest.json`, the manifest the site
+publishes for every release, and compares its version with the installed one:
+
+- the theme picker shows an **Update** banner with the release notes and a **Download** button, which
+  opens the APK link for your phone's ABI in the browser (nothing is installed behind your back);
+- a notification, *Clock Widget 1.x is available*, is posted once per new version. On Android 13+
+  the app asks for the notification permission the first time it opens.
+
+The manifest is treated as untrusted: only `https` links to `apps.bontot.my.id` and `github.com`
+are ever opened. This is the app's only network use (`INTERNET` permission); the request carries
+nothing but the usual HTTP headers.
+
 ## Using it
 
 1. Install the app and open it.
@@ -70,6 +91,19 @@ flutter run                       # or: flutter build apk --debug
 
 `flutter analyze` and `flutter test` should both pass. The widget code lives under
 `android/app/src/main/`.
+
+Debug builds need nothing else. A **release** build is signed with your own keystore, read from
+`android/key.properties` (gitignored; keep the keystore outside the repo):
+
+```properties
+storeFile=/path/to/your-release.jks
+storePassword=...
+keyAlias=...
+keyPassword=...
+```
+
+Then `flutter build apk --release --split-per-abi --target-platform android-arm,android-arm64`.
+Without `key.properties` the release build fails on purpose instead of falling back to the debug key.
 
 ## How it works
 
@@ -112,9 +146,9 @@ The designs were reconstructed from three reference screenshots:
 ## Limitations
 
 - Developed and tested on one phone (CPH2651, Android 16). Other launchers are unverified.
-- Starting a foreground service needs the app in the foreground (Android 12+). After a reboot the
-  widget falls back to a once-a-minute alarm, with flipping minutes, until you open the app and apply
-  a face again.
+- Starting a foreground service needs the app in the foreground (Android 12+). A widget you just
+  added, or one after a reboot, falls back to a once-a-minute alarm (with flipping minutes) until you
+  open the app once; opening it starts the service again.
 - Flip animates every second, which costs some battery and CPU (about 9 % app and 20 % launcher on
   the test phone, while the screen is on).
 - The pastel digits have no soft white glow around them, unlike the original.
@@ -123,11 +157,12 @@ The designs were reconstructed from three reference screenshots:
 ## Project layout
 
 ```
-lib/main.dart                      theme picker (Flutter)
+lib/main.dart, lib/update.dart     theme picker and update banner (Flutter)
 assets/previews/                   widget screenshots shown in the picker (WebP)
 android/app/src/main/
   kotlin/.../ClockWidgetProvider   builds the RemoteViews for the selected face
   kotlin/.../ClockTickService      ticks the widget on time
+  kotlin/.../UpdateChecker         looks for a newer release and notifies
   kotlin/.../FlipCardRenderer      draws a flip card and its 3D flip
   kotlin/.../MinimalRenderer       draws the minimal face
   res/layout/widget_theme_*.xml    one layout per face
@@ -146,6 +181,7 @@ screenshots is mocked up.
 
 ## Credits and licences
 
+- The code is released under the [MIT licence](LICENSE). The bundled fonts keep their own licences, see below.
 - Inspired by **StandBy Mode: Clock & Widgets** (`br.com.zetabit.ios_standby`). This project is
   independent and not affiliated with it. No code was reused, only measurements of how it looks.
 - Fonts: **Lilita One**, **League Gothic** and **Bebas Neue** are open fonts under the SIL OFL.
