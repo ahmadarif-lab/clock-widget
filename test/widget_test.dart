@@ -1,30 +1,42 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:clock_widget/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  rotationTest();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets('theme picker lets you swipe through every clock face', (WidgetTester tester) async {
+    await tester.pumpWidget(const ClockWidgetApp());
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(find.text('Clock Widget'), findsOneWidget);
+    expect(find.text('Apply to widget'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    for (final title in ['Pastel Bubbles', 'Green LED', 'Flip Clock', 'Minimal']) {
+      expect(find.text(title), findsWidgets);
+      await tester.drag(find.byType(PageView), const Offset(-300, 0));
+      await tester.pumpAndSettle();
+    }
+  });
+}
+
+void rotationTest() {
+  testWidgets('rotating the screen keeps a single carousel (no controller assertion)', (WidgetTester tester) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    tester.view.physicalSize = const Size(420, 860);
+    await tester.pumpWidget(const ClockWidgetApp());
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(PageView), const Offset(-250, 0));
+    await tester.pumpAndSettle();
+
+    for (final size in const [Size(860, 420), Size(420, 860), Size(860, 420)]) {
+      tester.view.physicalSize = size;
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(PageView), findsOneWidget);
+    }
   });
 }

@@ -19,8 +19,6 @@ DRAWABLE = RES + 'drawable/'
 SETS = [
     # pastel face: em 105 dp (Lilita One, upem 1000); tinted per digit slot in the layout
     ('pastel', 'font/lilita.ttf', '0123456789', (-12, 712), 105 / 1000, '#FFFFFFFF'),
-    # flip face: em 68 dp (League Gothic, upem 2000); ink is 1502 units tall
-    ('flip', 'font/flip.ttf', '0123456789', (-16, 1486), 68 / 2000, '#FF000000'),
     # LED side text: 7-segment digits; same box for all digits so every slot has equal width
     ('seg', 'font/segments.otf', '0123456789', (-222, 904), 1 / 100, '#FF00FF00'),
 ]

@@ -17,11 +17,13 @@ import java.util.Calendar
  * Renders the clock widget for the currently selected theme.
  *
  * Bundled fonts are ignored inside RemoteViews on some launchers (the text silently falls back to
- * the system font), so the bubble, LED and flip faces draw their digits as vector drawables
- * generated from the real fonts (tools/gen_glyphs.py) and pick the glyph with setImageLevel. That
- * also gives the bubble face its per-digit colours. These faces re-render once a minute through an
- * AlarmManager alarm; the flip face's seconds are a ViewFlipper the host advances by itself.
- * Only the minimal face still uses a self-updating [android.widget.TextClock].
+ * the system font), so no face uses a font on a widget view. The bubble and LED faces draw their
+ * digits as vector drawables generated from the real fonts (tools/gen_glyphs.py) and pick the
+ * glyph with setImageLevel, which also gives the bubble face its per-digit colours. The flip and
+ * minimal faces are bitmaps drawn here in the app process (where fonts do load); the flip face
+ * streams frames from FlipCardRenderer for a real 3D flip (every second from ClockTickService, or
+ * once a minute from the alarm when that service cannot run). Every face re-renders once a minute
+ * through an AlarmManager alarm.
  */
 class ClockWidgetProvider : AppWidgetProvider() {
 
@@ -29,6 +31,15 @@ class ClockWidgetProvider : AppWidgetProvider() {
         const val ACTION_TICK = "com.example.clock_widget.ACTION_TICK"
         private const val PREFS = "WidgetTheme"
         private const val REQUEST_TICK = 1001
+        /** Hour as shown on the face: 0-23, or 1-12 when the system uses 12-hour time. */
+        fun hourOf(context: Context, now: Calendar): Int {
+            if (DateFormat.is24HourFormat(context)) return now.get(Calendar.HOUR_OF_DAY)
+            val h = now.get(Calendar.HOUR)
+            return if (h == 0) 12 else h
+        }
+
+        private const val FLIP_MS = 520L
+        private const val FRAME_GAP_MS = 16L
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
@@ -36,14 +47,16 @@ class ClockWidgetProvider : AppWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             appWidgetManager.updateAppWidget(appWidgetId, buildViews(context, theme))
         }
-        if (needsTick(theme)) scheduleTick(context) else cancelTick(context)
+        ClockTickService.sync(context, theme)
+        scheduleTick(context)
     }
 
     override fun onEnabled(context: Context) {
-        if (needsTick(currentTheme(context))) scheduleTick(context)
+        scheduleTick(context)
     }
 
     override fun onDisabled(context: Context) {
+        ClockTickService.sync(context, "none")
         cancelTick(context)
     }
 
@@ -53,10 +66,16 @@ class ClockWidgetProvider : AppWidgetProvider() {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, ClockWidgetProvider::class.java))
             val theme = currentTheme(context)
-            for (appWidgetId in ids) {
-                manager.updateAppWidget(appWidgetId, buildViews(context, theme))
+            scheduleTick(context)
+            if (ClockTickService.running) {
+                // ClockTickService ticks on time itself; the alarm is only the fallback
+            } else if (theme == "flip" && ids.isNotEmpty()) {
+                animateFlip(context, manager, ids)
+            } else {
+                for (appWidgetId in ids) {
+                    manager.updateAppWidget(appWidgetId, buildViews(context, theme))
+                }
             }
-            if (needsTick(theme)) scheduleTick(context)
         }
     }
 
@@ -64,9 +83,6 @@ class ClockWidgetProvider : AppWidgetProvider() {
 
     private fun currentTheme(context: Context): String =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("theme", "bubble") ?: "bubble"
-
-    /** Faces whose digits are bound by hand and so must be re-rendered every minute. */
-    private fun needsTick(theme: String): Boolean = theme == "bubble" || theme == "digital" || theme == "flip"
 
     private fun layoutFor(theme: String): Int = when (theme) {
         "digital" -> R.layout.widget_theme_digital
@@ -84,17 +100,15 @@ class ClockWidgetProvider : AppWidgetProvider() {
             bindLedDigits(context, views)
         } else if (theme == "flip") {
             bindFlipDigits(context, views)
+        } else if (theme == "minimal") {
+            bindMinimal(context, views)
         }
 
         val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
         if (launch != null) {
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             val pending = PendingIntent.getActivity(context, 0, launch, flags)
-            if (theme == "minimal") {
-                views.setOnClickPendingIntent(R.id.clock_time, pending)
-            } else {
-                views.setOnClickPendingIntent(R.id.widget_root, pending)
-            }
+            views.setOnClickPendingIntent(R.id.widget_root, pending)
         }
         return views
     }
@@ -122,31 +136,57 @@ class ClockWidgetProvider : AppWidgetProvider() {
         views.setInt(R.id.clock_m1, "setImageLevel", minute % 10)
     }
 
-    /** Hour as shown on the face: 0-23, or 1-12 when the system uses 12-hour time. */
-    private fun hourOf(context: Context, now: Calendar): Int {
-        if (DateFormat.is24HourFormat(context)) return now.get(Calendar.HOUR_OF_DAY)
-        val h = now.get(Calendar.HOUR)
-        return if (h == 0) 12 else h
-    }
-
-    /** Flip face: hh / mm cards by level, and a 60-child ViewFlipper for the seconds card. */
-    private fun bindFlipDigits(context: Context, views: RemoteViews) {
+    /** Minimal face: one bitmap with the date and the time. */
+    private fun bindMinimal(context: Context, views: RemoteViews) {
         val now = Calendar.getInstance()
         val hour = hourOf(context, now)
-        val minute = now.get(Calendar.MINUTE)
-        views.setInt(R.id.flip_h0, "setImageLevel", hour / 10)
-        views.setInt(R.id.flip_h1, "setImageLevel", hour % 10)
-        views.setInt(R.id.flip_m0, "setImageLevel", minute / 10)
-        views.setInt(R.id.flip_m1, "setImageLevel", minute % 10)
+        val time = "%d:%02d".format(hour, now.get(Calendar.MINUTE))
+        views.setImageViewBitmap(R.id.minimal_image, MinimalRenderer(context).render(time, now.time))
+    }
 
-        views.removeAllViews(R.id.flip_seconds)
-        for (second in 0..59) {
-            val item = RemoteViews(context.packageName, R.layout.flip_second_item)
-            item.setInt(R.id.flip_s0, "setImageLevel", second / 10)
-            item.setInt(R.id.flip_s1, "setImageLevel", second % 10)
-            views.addView(R.id.flip_seconds, item)
-        }
-        views.setDisplayedChild(R.id.flip_seconds, now.get(Calendar.SECOND))
+    /** Flip face: hh / mm / ss cards as still bitmaps (ClockTickService flips them afterwards). */
+    private fun bindFlipDigits(context: Context, views: RemoteViews) {
+        val now = Calendar.getInstance()
+        val renderer = FlipCardRenderer(context)
+        views.setImageViewBitmap(R.id.flip_h, renderer.still("%02d".format(hourOf(context, now))))
+        views.setImageViewBitmap(R.id.flip_m, renderer.still("%02d".format(now.get(Calendar.MINUTE))))
+        views.setImageViewBitmap(R.id.flip_s, renderer.still("%02d".format(now.get(Calendar.SECOND))))
+    }
+
+    /**
+     * Minute change on the flip face: stream frames of a 3D flip into the hh / mm cards that
+     * changed (hh only changes on the hour), then settle on the normal full update. Runs on its own
+     * thread; goAsync keeps the process alive until the animation is done.
+     */
+    private fun animateFlip(context: Context, manager: AppWidgetManager, ids: IntArray) {
+        val pending = goAsync()
+        Thread {
+            try {
+                val renderer = FlipCardRenderer(context)
+                val now = Calendar.getInstance()
+                val before = (now.clone() as Calendar).apply { add(Calendar.MINUTE, -1) }
+                val hourNew = "%02d".format(hourOf(context, now))
+                val hourOld = "%02d".format(hourOf(context, before))
+                val minuteNew = "%02d".format(now.get(Calendar.MINUTE))
+                val minuteOld = "%02d".format(before.get(Calendar.MINUTE))
+
+                val start = System.currentTimeMillis()
+                while (true) {
+                    val progress = ((System.currentTimeMillis() - start) / FLIP_MS.toFloat()).coerceAtMost(1f)
+                    val frame = RemoteViews(context.packageName, layoutFor("flip"))
+                    if (hourOld != hourNew) frame.setImageViewBitmap(R.id.flip_h, renderer.frame(hourOld, hourNew, progress))
+                    frame.setImageViewBitmap(R.id.flip_m, renderer.frame(minuteOld, minuteNew, progress))
+                    manager.partiallyUpdateAppWidget(ids, frame)
+                    if (progress >= 1f) break
+                    Thread.sleep(FRAME_GAP_MS)
+                }
+                for (appWidgetId in ids) {
+                    manager.updateAppWidget(appWidgetId, buildViews(context, "flip"))
+                }
+            } finally {
+                pending.finish()
+            }
+        }.start()
     }
 
     /**

@@ -21,6 +21,7 @@ class MainActivity: FlutterActivity() {
                     // Save to SharedPreferences
                     val prefs = getSharedPreferences("WidgetTheme", Context.MODE_PRIVATE)
                     prefs.edit().putString("theme", theme).apply()
+                    ClockTickService.sync(this, theme)
 
                     // Trigger widget update
                     val intent = Intent(this, ClockWidgetProvider::class.java)
@@ -35,6 +36,9 @@ class MainActivity: FlutterActivity() {
                 } else {
                     result.error("UNAVAILABLE", "Theme not provided.", null)
                 }
+            } else if (call.method == "getTheme") {
+                val prefs = getSharedPreferences("WidgetTheme", Context.MODE_PRIVATE)
+                result.success(prefs.getString("theme", "bubble"))
             } else {
                 result.notImplemented()
             }

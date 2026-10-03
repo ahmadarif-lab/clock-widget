@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.clock_widget">
     <!-- Lets the pastel face re-render itself on every minute boundary. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Keeps the widget on time (flip face: every second) with a live process (ClockTickService). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:label="Clock Widget"
@@ -32,6 +36,13 @@
             <meta-data android:name="android.appwidget.provider"
                        android:resource="@xml/clock_widget_info" />
         </receiver>
+
+        <service android:name=".ClockTickService"
+                 android:exported="false"
+                 android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                      android:value="Ticks the clock home screen widget exactly on the second or minute" />
+        </service>
 
         <meta-data
             android:name="flutterEmbedding"

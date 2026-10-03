@@ -1,33 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Minimal face: the whole picture (red date over a big white time, Bebas Neue) is a bitmap
+     drawn by MinimalRenderer once a minute. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
-    android:padding="16dp">
+    android:background="#000000">
 
-    <TextClock
-        android:id="@+id/clock_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/clock_time"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="4dp"
-        android:fontFamily="@font/bebas"
-        android:format12Hour="EEE d"
-        android:format24Hour="EEE d"
-        android:textAllCaps="true"
-        android:textColor="#FF0000"
-        android:textSize="20sp" />
+    <ImageView
+        android:id="@+id/minimal_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter" />
 
-    <TextClock
-        android:id="@+id/clock_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:fontFamily="@font/bebas"
-        android:format12Hour="h:mm"
-        android:format24Hour="H:mm"
-        android:textColor="#FFFFFF"
-        android:textSize="100sp" />
-
-</RelativeLayout>
+</FrameLayout>
