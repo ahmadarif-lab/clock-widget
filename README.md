@@ -189,6 +189,18 @@ screenshots is mocked up.
 - The code is released under the [MIT licence](LICENSE). The bundled fonts keep their own licences, see below.
 - Inspired by **StandBy Mode: Clock & Widgets** (`br.com.zetabit.ios_standby`). This project is
   independent and not affiliated with it. No code was reused, only measurements of how it looks.
-- Fonts: **Lilita One**, **League Gothic** and **Bebas Neue** are open fonts under the SIL OFL.
-  The seven-segment font (`segments.otf`, "7 Seg Classic") was taken from the reference app's
-  resources and **its licence has not been verified**; check it before redistributing this project.
+- Fonts, all under the [SIL Open Font License 1.1](https://openfontlicense.org) (the full texts are in
+  [`licenses/`](licenses)):
+
+  | Font | Used for | Copyright |
+  |---|---|---|
+  | Lilita One | Pastel Bubbles digits | © 2011 Juan Montoreano |
+  | League Gothic | Flip Clock digits | © 2010 The League Gothic Project Authors |
+  | Bebas Neue | Minimal face | © 2010 Dharma Type |
+  | 7 Seg Classic (`segments.otf`) | small LED text (AM/PM, date, battery) | derived from **DSEG7 Classic**, © 2020 keshikan |
+
+  The seven-segment font came out of the reference app's resources without any licence or copyright
+  records. Its `A`, `P` and `.` glyphs are identical to DSEG7 Classic's (and its other letters match
+  closely), and the family name is not "DSEG", as the OFL's reserved-name rule requires of a modified
+  version, so it is treated here as a renamed DSEG derivative. If you know its exact origin, please open
+  an issue.
