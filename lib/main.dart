@@ -3,9 +3,11 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'licenses.dart';
 import 'update.dart';
 
 void main() {
+  registerLicenses();
   runApp(const ClockWidgetApp());
 }
 

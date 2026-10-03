@@ -204,3 +204,5 @@ screenshots is mocked up.
   closely), and the family name is not "DSEG", as the OFL's reserved-name rule requires of a modified
   version, so it is treated here as a renamed DSEG derivative. If you know its exact origin, please open
   an issue.
+
+  The same texts ship inside the app (settings sheet → **Licenses**), since the fonts end up in the APK.

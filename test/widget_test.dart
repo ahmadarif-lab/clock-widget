@@ -1,10 +1,13 @@
+import 'package:flutter/foundation.dart' show LicenseRegistry;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:clock_widget/licenses.dart';
 import 'package:clock_widget/main.dart';
 import 'package:clock_widget/update.dart';
 
 void main() {
+  licenseTests();
   updateTests();
   rotationTest();
 
@@ -83,5 +86,24 @@ void updateTests() {
     expect(find.text('Check for updates'), findsOneWidget);
     expect(find.text('Check now'), findsOneWidget);
     expect(find.byType(Switch), findsOneWidget);
+  });
+}
+
+void licenseTests() {
+  testWidgets('every bundled font has its licence text registered', (WidgetTester tester) async {
+    registerLicenses();
+    final packages = <String>[];
+    final texts = <String>[];
+    await tester.runAsync(() async {
+      await for (final entry in LicenseRegistry.licenses) {
+        packages.addAll(entry.packages);
+        texts.addAll(entry.paragraphs.map((p) => p.text));
+      }
+    });
+
+    for (final name in ['Lilita One', 'League Gothic', 'Bebas Neue', 'DSEG7 Classic', 'Clock Widget']) {
+      expect(packages.any((p) => p.contains(name)), isTrue, reason: 'missing licence for $name');
+    }
+    expect(texts.where((t) => t.contains('SIL OPEN FONT LICENSE')).length, greaterThanOrEqualTo(4));
   });
 }
